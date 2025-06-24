@@ -1,0 +1,2028 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Executivo - Grupo Diagonal</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f1f9f5 0%, #e8f0ec 100%);
+            color: #0a4d3a;
+            line-height: 1.6;
+            padding-bottom: 50px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #0a4d3a 0%, #1a5f4a 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .tabs-container {
+            background: #e8f0ec;
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            position: sticky;
+            top: 115px;
+            z-index: 90;
+        }
+        
+        .tab-btn {
+            background: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            color: #0a4d3a;
+        }
+        
+        .tab-btn.active {
+            background: #0a4d3a;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        
+        .kpi-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-left: 4px solid;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1), transparent);
+            border-radius: 50%;
+            transform: translate(30px, -30px);
+        }
+        
+        .kpi-card.critical {
+            border-left-color: #e74c3c;
+            background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
+        }
+        
+        .kpi-card.warning {
+            border-left-color: #f39c12;
+            background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+        }
+        
+        .kpi-card.info {
+            border-left-color: #1a5f4a;
+            background: linear-gradient(135deg, #e8f0ec 0%, #ffffff 100%);
+        }
+        
+        .kpi-card.success {
+            border-left-color: #00ff88;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+        }
+        
+        .kpi-number {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: #0a4d3a;
+        }
+        
+        .kpi-label {
+            font-size: 1rem;
+            color: #2c7a62;
+            margin-bottom: 0.5rem;
+        }
+        
+        .kpi-trend {
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .trend-up {
+            color: #e74c3c;
+        }
+        
+        .trend-down {
+            color: #00ff88;
+        }
+        
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .section h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #0a4d3a;
+            border-bottom: 3px solid #1a5f4a;
+            padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            height: 400px;
+        }
+        
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #0a4d3a;
+        }
+        
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+        
+        .insight-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .insight-card h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #0a4d3a;
+        }
+        
+        .insight-list {
+            list-style: none;
+        }
+        
+        .insight-list li {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #e8f0ec;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            color: #2c7a62;
+        }
+        
+        .insight-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .priority-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-top: 0.25rem;
+            flex-shrink: 0;
+        }
+        
+        .priority-high {
+            background: #e74c3c;
+        }
+        
+        .priority-medium {
+            background: #f39c12;
+        }
+        
+        .priority-low {
+            background: #00ff88;
+        }
+        
+        .action-plan {
+            background: linear-gradient(135deg, #0a4d3a 0%, #1a5f4a 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .action-plan h2 {
+            color: white;
+            border-bottom: 3px solid rgba(255,255,255,0.3);
+        }
+        
+        .action-timeline {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .timeline-item {
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .timeline-item h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #66ffaa;
+        }
+        
+        .timeline-item ul {
+            list-style: none;
+        }
+        
+        .timeline-item li {
+            padding: 0.5rem 0;
+            position: relative;
+            padding-left: 1.5rem;
+            color: white;
+        }
+        
+        .timeline-item li::before {
+            content: '▶';
+            position: absolute;
+            left: 0;
+            color: #66ffaa;
+        }
+        
+        .comparison-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 1.5rem;
+        }
+        
+        .company-comparison {
+            padding: 1.5rem;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+        
+        .victa-comparison {
+            border-left: 4px solid #1a5f4a;
+        }
+        
+        .diagonal-comparison {
+            border-left: 4px solid #2c7a62;
+        }
+        
+        .company-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #0a4d3a;
+        }
+        
+        .correction-banner {
+            background: #fffbeb;
+            color: #92400e;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #f59e0b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .qualitative-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .qualitative-section h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #0a4d3a;
+            border-bottom: 3px solid #2c7a62;
+            padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .category-card {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid;
+            transition: transform 0.3s ease;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .category-card.critical {
+            border-left-color: #e74c3c;
+        }
+        
+        .category-card.warning {
+            border-left-color: #f39c12;
+        }
+        
+        .category-card.info {
+            border-left-color: #1a5f4a;
+        }
+        
+        .category-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #0a4d3a;
+        }
+        
+        .problem-list {
+            list-style: none;
+            padding-left: 1rem;
+        }
+        
+        .problem-item {
+            padding: 0.8rem 0;
+            position: relative;
+            padding-left: 1.5rem;
+            color: #2c7a62;
+        }
+        
+        .problem-item::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: #1a5f4a;
+            font-size: 1.4rem;
+            line-height: 1;
+        }
+        
+        .development-item {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .development-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #0a4d3a;
+        }
+        
+        .problem-tag {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+        
+        .tag-critical {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        .tag-high {
+            background: #ffedd5;
+            color: #c2410c;
+        }
+        
+        .tag-medium {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        
+        .recommendations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .recommendation-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-top: 4px solid #00ff88;
+            transition: transform 0.3s ease;
+        }
+        
+        .recommendation-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .recommendation-card h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #0a4d3a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .recommendation-card.card-1 {
+            border-top-color: #1a5f4a;
+        }
+        
+        .recommendation-card.card-2 {
+            border-top-color: #00ff88;
+        }
+        
+        .recommendation-card.card-3 {
+            border-top-color: #f39c12;
+        }
+        
+        .recommendation-card.card-4 {
+            border-top-color: #2c7a62;
+        }
+        
+        .distribution-chart {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .distribution-item {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: relative;
+        }
+        
+        .distribution-bar {
+            height: 10px;
+            background: #e8f0ec;
+            border-radius: 5px;
+            margin: 0.5rem 0;
+            overflow: hidden;
+        }
+        
+        .distribution-fill {
+            height: 100%;
+            border-radius: 5px;
+        }
+        
+        .distribution-critical .distribution-fill {
+            background: #e74c3c;
+            width: 32%;
+        }
+        
+        .distribution-high .distribution-fill {
+            background: #f39c12;
+            width: 42%;
+        }
+        
+        .distribution-moderate .distribution-fill {
+            background: #1a5f4a;
+            width: 8%;
+        }
+        
+        .distribution-low .distribution-fill {
+            background: #00ff88;
+            width: 18%;
+        }
+        
+        .distribution-label {
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            color: #0a4d3a;
+        }
+        
+        @media (max-width: 768px) {
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .insights-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-timeline {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .kpi-number {
+                font-size: 2.5rem;
+            }
+            
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs-container {
+                top: 100px;
+            }
+            
+            .recommendations-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: #2c7a62;
+            font-size: 0.9rem;
+            border-top: 1px solid #e8f0ec;
+            margin-top: 2rem;
+        }
+        
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #cbd5e1, transparent);
+            margin: 2.5rem 0;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .summary-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-top: 4px solid #1a5f4a;
+        }
+        
+        .summary-card h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #0a4d3a;
+        }
+        
+        .strategy-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .strategy-header h2 {
+            font-size: 1.8rem;
+            color: #0a4d3a;
+            margin: 0;
+        }
+        
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .strategy-section {
+            margin-top: 2rem;
+        }
+        
+        /* Cores de destaque */
+        .highlight-green {
+            color: #00ff88;
+        }
+        
+        .highlight-dark {
+            color: #0a4d3a;
+        }
+        
+        .highlight-light {
+            color: #66ffaa;
+        }
+        
+        /* Elementos de interface */
+        i.fas, i.fab {
+            color: #1a5f4a;
+        }
+        
+        .development-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 3px solid #2c7a62;
+        }
+        
+        /* CORREÇÕES PARA O TOGGLE */
+        .toggle-btn {
+            background: #1a5f4a;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .toggle-btn:hover {
+            background: #0a4d3a;
+            transform: translateY(-2px);
+        }
+        
+        .toggle-btn .icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .toggle-btn.collapsed .icon {
+            transform: rotate(180deg);
+        }
+        
+        .toggle-content {
+            transition: all 0.4s ease;
+            overflow: hidden;
+            max-height: 3000px; /* Valor alto para acomodar o conteúdo */
+        }
+        
+        .toggle-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Dashboard Executivo - Grupo Diagonal</h1>
+        <p class="subtitle">Análise de Reclamações | Período: Janeiro - Junho 2025 | Dados Quantitativos e Qualitativos</p>
+    </div>
+    
+    <div class="tabs-container">
+        <button class="tab-btn" data-tab="victa">
+            <i class="fas fa-building"></i> Victa
+        </button>
+        <button class="tab-btn active" data-tab="diagonal">
+            <i class="fas fa-city"></i> Diagonal 
+        </button>
+        <button class="tab-btn" data-tab="comparacao">
+            <i class="fas fa-balance-scale"></i> Comparação
+        </button>
+    </div>
+
+    <div class="container">
+        <!-- Conteúdo da Victa  -->
+        <div id="victa-content" class="tab-content">
+            <!-- KPIs Principais -->
+            <div class="kpi-grid">
+                <div class="kpi-card critical">
+                    <div class="kpi-number">104</div>
+                    <div class="kpi-label">Total de Reclamações</div>
+                    <div class="kpi-trend trend-up">↗ Crescimento constante</div>
+                </div>
+                
+                <div class="kpi-card success">
+                    <div class="kpi-number">3,12%</div>
+                    <div class="kpi-label">Taxa de Reclamações</div>
+                    <div class="kpi-trend">↗ Em relação aos atendimentos</div>
+                </div>
+                
+                <div class="kpi-card info">
+                    <div class="kpi-number">15</div>
+                    <div class="kpi-label">Empreendimentos Afetados</div>
+                    <div class="kpi-trend">→ Distribuição ampla</div>
+                </div>
+                
+                <div class="kpi-card critical">
+                    <div class="kpi-number">78%</div>
+                    <div class="kpi-label">Reclamações via WhatsApp</div>
+                    <div class="kpi-trend">→ Canal predominante</div>
+                </div>
+            </div>
+
+            <!-- Análise Temporal -->
+            <div class="section">
+                <h2><i class="fas fa-chart-line"></i> Evolução Temporal das Reclamações</h2>
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <div class="chart-title">Reclamações por Mês</div>
+                        <canvas id="temporalChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">Distribuição por Categoria</div>
+                        <canvas id="categoriaChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Análise por Empreendimento -->
+            <div class="section">
+                <h2><i class="fas fa-building"></i> Empreendimentos com Maior Impacto</h2>
+                <div class="chart-container" style="height: 500px;">
+                    <canvas id="empreendimentoChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Insights Críticos -->
+            <div class="section">
+                <h2><i class="fas fa-search"></i> Insights Críticos Identificados</h2>
+                <div class="insights-grid">
+                    <div class="insight-card">
+                        <h3>Assistência Técnica (30%)</h3>
+                        <ul class="insight-list">
+                            <li>
+                                <div class="priority-indicator priority-high"></div>
+                                <span>Infiltrações e vazamentos recorrentes (Alta Vista)</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-high"></div>
+                                <span>Múltiplos protocolos sem resolução efetiva</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-high"></div>
+                                <span>Falta de água causando pressão inadequada</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-medium"></div>
+                                <span>Técnicos que apenas fazem vídeos sem reparos</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <h3>Comercial/Vendas (27%)</h3>
+                        <ul class="insight-list">
+                            <li>
+                                <div class="priority-indicator priority-high"></div>
+                                <span>Não cumprimento de campanhas promocionais</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-high"></div>
+                                <span>Atraso na entrega de brindes (TVs, ar-condicionado)</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-medium"></div>
+                                <span>Falta de comunicação sobre processos de entrega</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-medium"></div>
+                                <span>Problemas com acessórios e itens prometidos</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <h3>Problemas Financeiros (24%)</h3>
+                        <ul class="insight-list">
+                            <li>
+                                <div class="priority-indicator priority-high"></div>
+                                <span>Negativação indevida após distrato (múltiplos casos)</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-high"></div>
+                                <span>Alterações unilaterais pela CEF (R$ 36k → R$ 170k)</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-high"></div>
+                                <span>Cobranças automáticas em feriados (Abril)</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-medium"></div>
+                                <span>Demora na regularização de pagamentos</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <h3>Análise Temporal Crítica</h3>
+                        <ul class="insight-list">
+                            <li>
+                                <div class="priority-indicator priority-high"></div>
+                                <span>Jan-Mar: 39 reclamações (13+13+13)</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-high"></div>
+                                <span>Abr-Jun: 65 reclamações (31+23+11)</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-high"></div>
+                                <span>Abril: Pico de 31 reclamações (maior mês)</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-medium"></div>
+                                <span>Tendência de crescimento insustentável</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section-divider"></div>
+            
+            <!-- Seção de Análise Qualitativa para Victa -->
+            <div class="qualitative-section">
+                <h2><i class="fas fa-chart-pie"></i> Análise Qualitativa de Reclamações - Victa </h2>
+                
+                <div class="insight-card" style="margin-bottom: 2rem; background: #e8f0ec; border-left: 4px solid #1a5f4a;">
+                    <h3>Principais Áreas de Reclamação</h3>
+                    <p>A Victa apresenta problemas concentrados em três áreas principais, com destaque para questões de assistência técnica e problemas comerciais.</p>
+                </div>
+                
+                <div class="category-card critical">
+                    <h3 class="category-title"><i class="fas fa-tools"></i> Assistência Técnica (30% das reclamações)</h3>
+                    <ul class="problem-list">
+                        <li class="problem-item">
+                            <strong>Infiltrações e vazamentos recorrentes</strong>
+                            <div class="development-item">
+                                <div class="development-title"><i class="fas fa-building"></i> Alta Vista Passare</div>
+                                <p>Problemas persistentes em múltiplas unidades </p>
+                                  <span class="problem-tag tag-medium">Recorrente</span>
+                            </div>
+                        </li>
+                        <li class="problem-item">
+                            <strong>Falta de água e pressão inadequada</strong>
+                            <div class="development-item">
+                                <div class="development-title"><i class="fas fa-building"></i> Mirante Condomínio Clube</div>
+                                <p>} Clientes relatam falta de água constante durante horários de pico</p>
+                                <span class="problem-tag tag-medium">Recorrente</span>
+                            </div>
+                        </li>
+                        <li class="problem-item">
+                            <strong>Atendimento técnico insatisfatório</strong>
+                            <p>Visitas técnicas que não resolvem problemas, apenas registram ocorrências</p>
+                            <span class="problem-tag tag-medium">Recorrente</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="category-card warning">
+                    <h3 class="category-title"><i class="fas fa-shopping-cart"></i> Comercial/Vendas (27% das reclamações)</h3>
+                    <ul class="problem-list">
+                        <li class="problem-item">
+                            <strong>Não cumprimento de campanhas promocionais</strong>
+                            <p>Clientes não receberam brindes prometidos (TVs, ar-condicionado) após 6 meses da entrega</p>
+                            <span class="problem-tag tag-high">Pendente</span>
+                        </li>
+                        <li class="problem-item">
+                            <strong>Falta de comunicação</strong>
+                            <p>Informações contraditórias sobre processos de entrega e documentação</p>
+                            <span class="problem-tag tag-medium">Sistêmico</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="category-card info">
+                    <h3 class="category-title"><i class="fas fa-file-invoice-dollar"></i> Problemas Financeiros (24% das reclamações)</h3>
+                    <ul class="problem-list">
+                        <li class="problem-item">
+                            <strong>Negativação indevida após distrato</strong>
+                            <p>Casos de clientes negativados indevidamente após cancelamento de contrato</p>
+                            <span class="problem-tag tag-critical">Urgente</span>
+                        </li>
+                        <li class="problem-item">
+                            <strong>Alterações unilaterais pela CEF</strong>
+                            <p>Financiamentos com valores alterados drasticamente (ex: R$ 36k → R$ 170k)</p>
+                            <span class="problem-tag tag-high">Complexo</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <h3 style="margin: 2rem 0 1rem;"><i class="fas fa-map-marked-alt"></i> Empreendimentos com Maior Concentração de Problemas</h3>
+                
+                <div class="distribution-chart">
+                    <div class="distribution-item distribution-critical">
+                        <div class="development-title"><i class="fas fa-exclamation-triangle"></i> Alta Vista Passare (12%)</div>
+                        <p>Problemas recorrentes de infiltração e vazamentos</p>
+                        <div class="distribution-bar">
+                            <div class="distribution-fill"></div>
+                        </div>
+                        <div class="distribution-label">
+                            <span>Crítico</span>
+                            <span>12%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="distribution-item distribution-high">
+                        <div class="development-title"><i class="fas fa-exclamation-circle"></i> Mirante Condomínio Clube (10%)</div>
+                        <p>Questões comerciais e de entrega de brindes</p>
+                        <div class="distribution-bar">
+                            <div class="distribution-fill"></div>
+                        </div>
+                        <div class="distribution-label">
+                            <span>Alto</span>
+                            <span>10%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="distribution-item distribution-high">
+                        <div class="development-title"><i class="fas fa-exclamation-circle"></i> Jóquei Condomínio Clube (8%)</div>
+                        <p>Problemas financeiros e de documentação</p>
+                        <div class="distribution-bar">
+                            <div class="distribution-fill"></div>
+                        </div>
+                        <div class="distribution-label">
+                            <span>Alto</span>
+                            <span>8%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SEÇÃO UNIFICADA DE ESTRATÉGIA (AÇÕES + RECOMENDAÇÕES) -->
+                <div class="strategy-section">
+                    <div class="strategy-header">
+                        <i class="fas fa-chess-king fa-2x" style="color: #1a5f4a;"></i>
+                        <h2>Estratégia Integrada: Recomendações e Ações</h2>
+                        <button id="victa-toggle-btn" class="toggle-btn">
+                            <span class="icon"><i class="fas fa-chevron-up"></i></span>
+                            <span>Ocultar</span>
+                        </button>
+                    </div>
+                    
+                    <div id="victa-strategy-content" class="toggle-content">
+                        <div class="recommendations-grid">
+                            <!-- Card 1 - Assistência Técnica -->
+                            <div class="recommendation-card card-1">
+                                <h3><i class="fas fa-tools"></i> Reestruturar Processos de Assistência Técnica</h3>
+                                <ul class="insight-list">
+                                    <li>Estabelecido SLA máximo por patologia para resolução</li>
+                                    <li>Criar equipe especializada para problemas recorrentes</li>
+                                    <li>Implementar sistema de feedback pós-atendimento para avaliar a reincidência</li>
+                                    <li>Treinamento intensivo da equipe de atendimento</li>
+                                </ul>
+                            </div>
+                            
+                            <!-- Card 2 - Comunicação Comercial -->
+                            <div class="recommendation-card card-2">
+                                <h3><i class="fas fa-comments"></i> Melhorar Comunicação Comercial</h3>
+                                <ul class="insight-list">
+                                    <li>Implementar autosserviço com status de brindes das campanhas</li>
+                                    <li>Criar protocolos claros de comunicação pós-venda</li>
+                                    <li>Treinar equipe comercial em gestão de expectativas</li>
+                                                                 </ul>
+                            </div>
+                            
+                            <!-- Card 3 - Processos Financeiros -->
+                            <div class="recommendation-card card-3">
+                                <h3><i class="fas fa-chart-line"></i> Otimizar Processos Financeiros</h3>
+                                <ul class="insight-list">
+                                    <li>Auditoria nos processos de distrato e negativação</li>
+                                    <li>Melhorar integração com instituições financeiras</li>
+                                    <li>Criar comitê de crise para casos complexos</li>
+                                    <li>Implementar sistema de alerta para cobranças indevidas</li>
+                                </ul>
+                            </div>
+                            
+                            <!-- Card 4 - Plano de Ações -->
+                            <div class="recommendation-card card-4">
+                                <h3><i class="fas fa-bolt"></i> Plano de Ação Estratégico</h3>
+                                <ul class="insight-list">
+                                    <li><strong>Curto prazo:</strong> Força-tarefa para negativações indevidas; Implementar protocolo de emergência financeira; Estabelecido SLA de 24h para primeira resposta</li>
+                                    <li><strong>Médio prazo:</strong> Revisar processo de distrato e cobrança; Implementar sistema CRM integrado; Melhorar comunicação com CEF e parceiros</li>
+                                    <li><strong>Longo prazo:</strong> Desenvolver programa de fidelização; Mudança de Paradigma na assistência técnica (transformar em centro de receita)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Conteúdo da Diagonal (ATUALIZADO E CORRIGIDO) -->
+        <div id="diagonal-content" class="tab-content active">
+            <!-- KPIs Principais -->
+            <div class="kpi-grid">
+                <div class="kpi-card critical">
+                    <div class="kpi-number">52</div>
+                    <div class="kpi-label">Total de Reclamações</div>
+                    <div class="kpi-trend trend-up">↗ Concentração em poucos Empreendimentos</div>
+                </div>
+                
+                <div class="kpi-card success">
+                    <div class="kpi-number">5,26%</div>
+                    <div class="kpi-label">Taxa de Reclamações</div>
+                    <div class="kpi-trend">↗ Em relação aos atendimentos</div>
+                </div>
+                
+                <div class="kpi-card info">
+                    <div class="kpi-number">11</div>
+                    <div class="kpi-label">Empreendimentos Afetados</div>
+                    <div class="kpi-trend">→ Distribuição desigual</div>
+                </div>
+                
+                <div class="kpi-card critical">
+                    <div class="kpi-number">29%</div>
+                    <div class="kpi-label">Fortim Eco Village</div>
+                    <div class="kpi-trend">→ Projeto mais crítico</div>
+                </div>
+            </div>
+
+            <!-- Análise Temporal -->
+            <div class="section">
+                <h2><i class="fas fa-chart-line"></i> Evolução Temporal das Reclamações</h2>
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <div class="chart-title">Reclamações por Mês</div>
+                        <canvas id="diagonal-temporalChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">Distribuição por Categoria</div>
+                        <canvas id="diagonal-categoriaChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categorização por tipo de problema (ATUALIZADA) -->
+            <div class="section">
+                <h2><i class="fas fa-list"></i> Categorização por Tipo de Problema</h2>
+                
+                <div class="insights-grid">
+                    <div class="insight-card">
+                        <h3>🏗️ Problemas de Obra e Engenharia (40%)</h3>
+                        <ul class="insight-list">
+                            <li>
+                                <div class="priority-indicator priority-high"></div>
+                                <span>Ruído excessivo e perturbação</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-high"></div>
+                                <span>Queda de materiais e problemas de segurança</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-medium"></div>
+                                <span>Proliferação de insetos e poeira</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-medium"></div>
+                                <span>Entupimento de calhas com concreto</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-high"></div>
+                                <span>Atrasos significativos na entrega</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <h3>🔧 Problemas de Assistência Técnica (25%)</h3>
+                        <ul class="insight-list">
+                            <li>
+                                <div class="priority-indicator priority-high"></div>
+                                <span>Vazamentos persistentes</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-medium"></div>
+                                <span>Problemas no sistema de aquecimento </span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-medium"></div>
+                                <span>Infiltrações recorrentes</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-medium"></div>
+                                <span>Danos estruturais não resolvidos</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <h3>💰 Problemas Financeiros (15%)</h3>
+                        <ul class="insight-list">
+                            <li>
+                                <div class="priority-indicator priority-high"></div>
+                                <span>Cobrança de juros indevidos</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-high"></div>
+                                <span>Aumentos não comunicados</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-medium"></div>
+                                <span>Erros em documentos fiscais</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-medium"></div>
+                                <span>Modalidade "a preço de custo"</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <h3>⚖️ Problemas Jurídicos (10%)</h3>
+                        <ul class="insight-list">
+                            <li>
+                                <div class="priority-indicator priority-high"></div>
+                                <span>Demora na baixa de hipoteca</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-medium"></div>
+                                <span>Falta de documentação</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-medium"></div>
+                                <span>Alterações unilaterais de contratos</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <h3>👤 Problemas de Experiência (10%)</h3>
+                        <ul class="insight-list">
+                            <li>
+                                <div class="priority-indicator priority-medium"></div>
+                                <span>Demora no atendimento</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-medium"></div>
+                                <span>Falta de comunicação</span>
+                            </li>
+                            <li>
+                                <div class="priority-indicator priority-medium"></div>
+                                <span>Atendimento na recepção </span>
+                            </li>
+                             <li>
+                                <div class="priority-indicator priority-medium"></div>
+                                <span>Reuniões e assembléias apenas presenciais</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Análise por Empreendimento (ATUALIZADA E CORRIGIDA) -->
+            <div class="section">
+                <h2><i class="fas fa-building"></i> Empreendimentos com Maior Concentração de Problemas</h2>
+                
+                <div class="insight-card" style="margin-bottom: 1.5rem; border-left: 4px solid #e74c3c;">
+                    <h3 style="color: #e74c3c;">🔴 CRÍTICO (5+ reclamações)</h3>
+                    <ul class="insight-list">
+                        <li>
+                            <div class="priority-indicator priority-high"></div>
+                            <strong>FORTIM ECO VILLAGE</strong> - 12 reclamações (29%)
+                            <div class="development-info">
+                                <p><strong>Problemas Estruturais:</strong></p>
+                                <ul>
+                                    <li>Gestão deficiente de cronograma e entregas</li>
+                                    <li>Comunicação inadequada com proprietários</li>
+                                    <li>Alterações unilaterais sem consulta (mudança de numeração)</li>
+                                    <li>Problemas de governança (síndico não atuante)</li>
+                                    <li>Falta de padronização em aprovações de obras</li>
+                                </ul>
+                                <p class="impact" style="color: #e74c3c; margin-top: 10px;">
+                                    <i class="fas fa-exclamation-circle"></i> Impacto: Alto risco de ações judiciais coletivas e danos severos à reputação
+                                </p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="priority-indicator priority-high"></div>
+                            <strong>LEGACY CONDOMINIUM</strong> - 6 reclamações (14%)
+                            <div class="development-info">
+                                <p><strong>Problemas Identificados:</strong></p>
+                                <ul>
+                                    <li>Falhas sistêmicas na assistência técnica</li>
+                                    <li>Problemas técnicos não resolvidos definitivamente</li>
+                                    <li>Falta de transparência em processos administrativos, como registro e devolução de valores</li>
+                                </ul>
+                                <p class="impact" style="color: #f39c12; margin-top: 10px;">
+                                    <i class="fas fa-exclamation-triangle"></i> Impacto:  Na confiança e possível perda de clientes por insatisfação acumulada
+                                </p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="priority-indicator priority-high"></div>
+                            <strong>CONNECT BEIRA MAR</strong> - 5 reclamações (12%)
+                            <div class="development-info">
+                                <p><strong>Problemas Identificados:</strong></p>
+                                <ul>
+                                    <li>Queda de materiais da obra (risco de segurança)</li>
+                                    <li>Problemas financeiros (juros, modalidade a preço de custo)</li>
+                                    <li>Atrasos e lentidão no andamento da obra</li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="priority-indicator priority-high"></div>
+                            <strong>EDGE CONDOMINIUM</strong> - 5 reclamações (12%)
+                            <div class="development-info">
+                                <p><strong>Problemas Identificados:</strong></p>
+                                <ul>
+                                    <li>Pragas e insetos afetando vizinhança</li>
+                                    <li>Mudanças em AGE causando insatisfação</li>
+                                    <li>Aumentos de valores não aceitos pelos clientes</li>
+                                </ul>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="insight-card" style="margin-bottom: 1.5rem; border-left: 4px solid #f39c12;">
+                    <h3 style="color: #f39c12;">🟡 MODERADO (3-4 reclamações)</h3>
+                    <ul class="insight-list">
+                        <li>
+                            <div class="priority-indicator priority-medium"></div>
+                            <strong>ICON CONDOMINIUM</strong> - 3 reclamações (7%)
+                            <div class="development-info">
+                                <ul>
+                                    <li>Vazamentos persistentes há mais de 1 ano</li>
+                                    <li>Problemas de infiltração na varanda</li>
+                                    <li>Resistência da assistência técnica em resolver problemas recorrentes</li>
+                                </ul>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="insight-card" style="border-left: 4px solid #00ff88;">
+                    <h3 style="color: #00ff88;">🟢 BAIXO (1-2 reclamações)</h3>
+                    <ul class="insight-list">
+                        <li>
+                            <div class="priority-indicator priority-low"></div>
+                            <strong>PRAÇA DA LUZ</strong> - 2 reclamações (5%)
+                            <div class="development-info">
+                                <ul>
+                                    <li>Demora extrema na baixa de hipoteca (mais de 5 anos)</li>
+                                    <li>Problemas de documentação e processos jurídicos</li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="priority-indicator priority-low"></div>
+                            <strong>EPIC CONDOMINIUM</strong> - 2 reclamações (5%)
+                            <div class="development-info">
+                                <ul>
+                                    <li>Falta de comunicação sobre AGE (convocações não recebidas)</li>
+                                    <li>Problemas com restos de concreto em vias públicas</li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="priority-indicator priority-low"></div>
+                            <strong>PRISMA RESIDENCIAL CLUBE</strong> - 2 reclamações (5%)
+                            <div class="development-info">
+                                <ul>
+                                    <li>Entupimento de tubulações</li>
+                                    <li>Danos a veículos durante serviços no teto da garagem</li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="priority-indicator priority-low"></div>
+                            <strong>DIAGONAL BY PININFARINA</strong> - 2 reclamações (5%)
+                            <div class="development-info">
+                                <ul>
+                                    <li>Ruído excessivo há mais de 1 ano</li>
+                                    <li>Problemas com acomodação de vizinhos durante a obra</li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="priority-indicator priority-low"></div>
+                            <strong>IVENS MONUMENTAL</strong> - 1 reclamação (2%)
+                            <div class="development-info">
+                                <ul>
+                                    <li>Cobrança de juros em pagamento antecipado</li>
+                                </ul>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section-divider"></div>
+            
+            <!-- Seção de Análise Qualitativa para Diagonal (ATUALIZADA) -->
+            <div class="qualitative-section">
+                <h2><i class="fas fa-chart-pie"></i> Análise Qualitativa de Reclamações - Diagonal </h2>
+                
+                <div class="insight-card" style="margin-bottom: 2rem; background: #e8f0ec; border-left: 4px solid #2c7a62;">
+                    <h3>Principais Áreas de Reclamação</h3>
+                    <p>A Diagonal apresenta problemas concentrados em obras e construção, com destaque para o empreendimento Fortim Eco Village que responde por 29% das reclamações. Problemas de assistência técnica e questões financeiras também são significativos.</p>
+                </div>
+                
+                <div class="category-card critical">
+                    <h3 class="category-title"><i class="fas fa-hard-hat"></i> PROBLEMAS DE OBRA E CONSTRUÇÃO</h3>
+                    <ul class="problem-list">
+                        <li class="problem-item">
+                            <strong>Ruído e Perturbação</strong>
+                            <div class="development-item">
+                                <div class="development-title"><i class="fas fa-building"></i> DIAGONAL BY PININFARINA</div>
+                                <p>Ruído excessivo há mais de 1 ano, equipamentos obsoletos, perturbação desde 7h da manhã</p>
+                                <span class="problem-tag tag-critical">Crônico</span>
+                            </div>
+                            <div class="development-item">
+                                <div class="development-title"><i class="fas fa-building"></i> EDGE CONDOMINIUM</div>
+                                <p>Notificação extrajudicial de vizinho por ruído e poeira</p>
+                                <span class="problem-tag tag-high">Urgente</span>
+                            </div>
+                        </li>
+                        <li class="problem-item">
+                            <strong>Atrasos na Execução</strong>
+                            <div class="development-item">
+                                <div class="development-title"><i class="fas fa-building"></i> CONNECT BEIRA MAR</div>
+                                <p>Obra 45% concluída próximo ao prazo original</p>
+                            </div>
+                            <div class="development-item">
+                                <div class="development-title"><i class="fas fa-building"></i> FORTIM ECO VILLAGE</div>
+                                <p>Atraso na instalação do condomínio (previsto fevereiro, adiado para março)</p>
+                            </div>
+                            <div class="development-item">
+                                <div class="development-title"><i class="fas fa-building"></i> IVENS MONUMENTAL</div>
+                                <p>Obra com atraso significativo</p>
+                            </div>
+                        </li>
+                        <li class="problem-item">
+                            <strong>Defeitos Técnicos</strong>
+                            <div class="development-item">
+                                <div class="development-title"><i class="fas fa-building"></i> FORTIM ECO VILLAGE</div>
+                                <p>Múltiplos defeitos identificados em pré-vistoria</p>
+                            </div>
+                            <div class="development-item">
+                                <div class="development-title"><i class="fas fa-building"></i> ICON CONDOMINIUM</div>
+                                <p>Vazamentos persistentes na esquadria há mais de 1 ano</p>
+                            </div>
+                            <div class="development-item">
+                                <div class="development-title"><i class="fas fa-building"></i> LEGACY CONDOMINIUM</div>
+                                <p>Problemas no sistema do aquecedor (temporariamente resolvido, voltou a falhar)</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="category-card warning">
+                    <h3 class="category-title"><i class="fas fa-headset"></i> PROBLEMAS DE ATENDIMENTO AO CLIENTE</h3>
+                    <ul class="problem-list">
+                        <li class="problem-item">
+                            <strong>Demora no Atendimento</strong>
+                            <div class="development-item">
+                                <div class="development-title"><i class="fas fa-building"></i> CONNECT BEIRA MAR</div>
+                                <p>Cliente aguardou mais de uma semana para atendimento</p>
+                            </div>
+                            <div class="development-item">
+                                <div class="development-title"><i class="fas fa-building"></i> FORTIM ECO VILLAGE</div>
+                                <p>Falta de resposta a dúvidas de arquitetas e dificuldades de comunicação</p>
+                            </div>
+                        </li>
+                        <li class="problem-item">
+                            <strong>Falta de Retorno</strong>
+                            <div class="development-item">
+                                <div class="development-title"><i class="fas fa-building"></i> FORTIM ECO VILLAGE</div>
+                                <p>Cliente sem retorno após vistoria realizada em 5/5</p>
+                            </div>
+                            <div class="development-item">
+                                <div class="development-title"><i class="fas fa-building"></i> ICON CONDOMINIUM</div>
+                                <p>Problema de vazamento não resolvido após múltiplas reclamações</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="category-card info">
+                    <h3 class="category-title"><i class="fas fa-file-invoice-dollar"></i> PROBLEMAS FINANCEIROS E CONTRATUAIS</h3>
+                    <ul class="problem-list">
+                        <li class="problem-item">
+                            <strong>Cobrança de Encargos Indevidos</strong>
+                            <div class="development-item">
+                                <div class="development-title"><i class="fas fa-building"></i> CONNECT BEIRA MAR</div>
+                                <p>Cliente pagou parcela errada, solicitou remoção de juros e multas</p>
+                            </div>
+                            <div class="development-item">
+                                <div class="development-title"><i class="fas fa-building"></i> IVENS MONUMENTAL</div>
+                                <p>Solicitação de isenção de encargos por pagamento sempre antecipado</p>
+                            </div>
+                        </li>
+                        <li class="problem-item">
+                            <strong>Aumentos não Comunicados</strong>
+                            <div class="development-item">
+                                <div class="development-title"><i class="fas fa-building"></i> CONNECT BEIRA MAR</div>
+                                <p>Imposição de cotas adicionais por falta de vendas</p>
+                            </div>
+                            <div class="development-item">
+                                <div class="development-title"><i class="fas fa-building"></i> EDGE CONDOMINIUM</div>
+                                <p>Aumento no valor de parcela de obra sem esclarecimentos adequados</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <h3 style="margin: 2rem 0 1rem;"><i class="fas fa-map-marked-alt"></i> Empreendimentos com Maior Concentração de Problemas</h3>
+                
+                <div class="distribution-chart">
+                    <div class="distribution-item distribution-critical">
+                        <div class="development-title"><i class="fas fa-exclamation-triangle"></i> FORTIM ECO VILLAGE (29%)</div>
+                        <p>12 reclamações - Problemas diversos em múltiplas áreas</p>
+                        <div class="distribution-bar">
+                            <div class="distribution-fill"></div>
+                        </div>
+                        <div class="distribution-label">
+                            <span>Crítico</span>
+                            <span>29%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="distribution-item distribution-high">
+                        <div class="development-title"><i class="fas fa-exclamation-circle"></i> LEGACY CONDOMINIUM (14%)</div>
+                        <p>6 reclamações - Problemas técnicos recorrentes</p>
+                        <div class="distribution-bar">
+                            <div class="distribution-fill"></div>
+                        </div>
+                        <div class="distribution-label">
+                            <span>Alto</span>
+                            <span>14%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="distribution-item distribution-high">
+                        <div class="development-title"><i class="fas fa-exclamation-circle"></i> CONNECT BEIRA MAR (12%)</div>
+                        <p>5 reclamações - Atrasos e problemas de segurança</p>
+                        <div class="distribution-bar">
+                            <div class="distribution-fill"></div>
+                        </div>
+                        <div class="distribution-label">
+                            <span>Alto</span>
+                            <span>12%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="distribution-item distribution-high">
+                        <div class="development-title"><i class="fas fa-exclamation-circle"></i> EDGE CONDOMINIUM (12%)</div>
+                        <p>5 reclamações - Problemas ambientais e de comunicação</p>
+                        <div class="distribution-bar">
+                            <div class="distribution-fill"></div>
+                        </div>
+                        <div class="distribution-label">
+                            <span>Alto</span>
+                            <span>12%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="strategy-section">
+                    <div class="strategy-header">
+                        <i class="fas fa-lightbulb fa-2x" style="color: #1a5f4a;"></i>
+                        <h2>Ações e Recomendações Estratégicas</h2>
+                        <button id="diagonal-toggle-btn" class="toggle-btn">
+                            <span class="icon"><i class="fas fa-chevron-up"></i></span>
+                            <span>Ocultar</span>
+                        </button>
+                    </div>
+                    
+                    <div id="diagonal-strategy-content" class="toggle-content">
+                        <div class="recommendations-grid">
+                            <div class="recommendation-card">
+                                <h3>Gestão de Qualidade em Obras</h3>
+                                <ul class="insight-list">
+                                    <li>Estruturar pipeline de qualidade: obra → engenharia preventiva → vistoria cliente → pós-entrega com KPIs específicos para cada etapa</li>
+                                    <li>Estruturar sistema de KPIs e OKRs para engenharia preventiva, vistoria do cliente e pós-entrega, com metas de redução de 40% nas reclamações</li>
+   					<li>Atualizar equipamentos para reduzir ruídos e acidentes</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="recommendation-card">
+                                <h3>Otimizar Atendimento ao Cliente</h3>
+                                <ul class="insight-list">
+                                    <li>Implementar sistema de CRM unificado com acompanhamento dos atendimentos independentemente da área</li>
+                                    <li>Estabelecido SLA de 24h para primeiro contato</li>
+                                    <li>Criar nível de atendimento para escalar reclamações, processo ouvidoria</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="recommendation-card">
+                                <h3>Melhorar Comunicação e Transparência</h3>
+                                <ul class="insight-list">
+                                    <li>Reduzir o SLA de envio de Atas e publicação no Portal </li>
+                                    <li>Implementar sistema de notificação para mudanças de prazos e fluxo financeiro</li>
+                                    <li>Organizar para trabalhar com agendas híbridas</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="recommendation-card">
+                                <h3>Processos Pós-Entrega</h3>
+                                <ul class="insight-list">
+                                    <li>Estabelecer garantia estendida para problemas recorrentes</li>
+                                    <li>Criar equipe de resposta rápida para vazamentos</li>
+                                    <li>Implementar sistema de feedback pós-reparo para avaliar solução definitiva</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Comparação entre empresas -->
+        <div id="comparacao-content" class="tab-content">
+            <div class="section">
+                <h2><i class="fas fa-balance-scale"></i> Comparação de Desempenho</h2>
+                
+                <div class="kpi-grid">
+                    <div class="kpi-card info">
+                        <div class="kpi-number">156</div>
+                        <div class="kpi-label">Total de Reclamações</div>
+                        <div class="kpi-trend">↗ Combinadas</div>
+                    </div>
+                    
+                    <div class="kpi-card success">
+                        <div class="kpi-number">3,12%</div>
+                        <div class="kpi-label">Victa: Taxa de Reclamações</div>
+                        <div class="kpi-trend">↗ Em relação aos atendimentos</div>
+                    </div>
+                    
+                    <div class="kpi-card warning">
+                        <div class="kpi-number">5,26%</div>
+                        <div class="kpi-label">Diagonal: Taxa de Reclamações</div>
+                        <div class="kpi-trend trend-up">↗ Em relação aos atendimentos</div>
+                    </div>
+                    
+                    <div class="kpi-card critical">
+                        <div class="kpi-number">41</div>
+                        <div class="kpi-label">Pico em Abril 2025</div>
+                        <div class="kpi-trend trend-up">↗ Máximo histórico</div>
+                    </div>
+                </div>
+                
+                <div class="comparison-section">
+                    <h3><i class="fas fa-percentage"></i> Análise Comparativa das Taxas de Reclamações</h3>
+                    
+                    <div class="comparison-grid">
+                        <div class="company-comparison victa-comparison">
+                            <div class="company-title" style="color: #0a4d3a;">
+                                <i class="fas fa-building"></i> Victa 
+                            </div>
+                            <div class="kpi-number" style="color: #0a4d3a; font-size: 2.5rem;">3,12%</div>
+                            <div class="kpi-trend">Taxa de reclamações</div>
+                            
+                            <div style="margin-top: 1.5rem;">
+                                <p><strong>Pontos fortes:</strong></p>
+                                <ul class="insight-list">
+                                    <li>
+                                        <div class="priority-indicator priority-low"></div>
+                                        <span>Taxa abaixo da média do setor</span>
+                                    </li>
+                                    <li>
+                                        <div class="priority-indicator priority-low"></div>
+                                        <span>Processos de atendimento bem estabelecidos</span>
+                                    </li>
+                                    <li>
+                                        <div class="priority-indicator priority-low"></div>
+                                        <span>Boa distribuição entre empreendimentos</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="company-comparison diagonal-comparison">
+                            <div class="company-title" style="color: #0a4d3a;">
+                                <i class="fas fa-city"></i> Diagonal 
+                            </div>
+                            <div class="kpi-number" style="color: #0a4d3a; font-size: 2.5rem;">5,26%</div>
+                            <div class="kpi-trend trend-up">Taxa de reclamações</div>
+                            
+                            <div style="margin-top: 1.5rem;">
+                                <p><strong>Áreas de oportunidade:</strong></p>
+                                <ul class="insight-list">
+                                    <li>
+                                        <div class="priority-indicator priority-high"></div>
+                                        <span>Taxa acima da média do setor</span>
+                                    </li>
+                                    <li>
+                                        <div class="priority-indicator priority-high"></div>
+                                        <span>Concentração de problemas em projetos específicos</span>
+                                    </li>
+                                    <li>
+                                        <div class="priority-indicator priority-medium"></div>
+                                        <span>Necessidade de melhorar processos pós-entrega</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Gráfico de Comparação de Taxas apenas -->
+                <div class="chart-container" style="max-width: 800px; margin: 2rem auto;">
+                    <div class="chart-title">Comparação de Taxas de Reclamações</div>
+                    <canvas id="comparacao-taxasChart"></canvas>
+                </div>
+
+                <!-- Resumo das Categorias de Problemas -->
+                <div class="section">
+                    <h2><i class="fas fa-list"></i> Resumo das Categorias de Problemas</h2>
+                    
+                    <div class="summary-grid">
+                        <div class="summary-card">
+                            <h3><i class="fas fa-tools"></i> Victa </h3>
+                            <ul class="insight-list">
+                                <li><strong>Assistência Técnica:</strong> 30%</li>
+                                <li><strong>Comercial/Vendas:</strong> 27%</li>
+                                <li><strong>Problemas Financeiros:</strong> 24%</li>
+                                <li><strong>Financiamento:</strong> 15%</li>
+                                <li><strong>Outros:</strong> 4%</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="summary-card">
+                            <h3><i class="fas fa-city"></i> Diagonal </h3>
+                            <ul class="insight-list">
+                                <li><strong>Obra/Construção:</strong> 40%</li>
+                                <li><strong>Assistência Técnica:</strong> 25%</li>
+                                <li><strong>Financeiro:</strong> 15%</li>
+                                <li><strong>Jurídico:</strong> 10%</li>
+                                <li><strong>Experiência do Cliente:</strong> 10%</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Dashboard Executivo - Grupo Diagonal | Atualizado em: Junho 2025</p>
+    </div>
+
+    <script>
+        // Dados para Victa
+        const temporalData = {
+            labels: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho'],
+            datasets: [{
+                label: 'Reclamações por Mês',
+                data: [13, 13, 13, 31, 23, 11],
+                backgroundColor: '#1a5f4a',
+                borderColor: '#0a4d3a',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        };
+
+        const categoriaData = {
+            labels: ['Assistência Técnica', 'Comercial/Vendas', 'Financeiro', 'Financiamento', 'Experiência', 'Eng./Obra', 'Jurídico'],
+            datasets: [{
+                data: [32, 29, 25, 15, 6, 4, 1],
+                backgroundColor: [
+                    '#1a5f4a', '#0a4d3a', '#2c7a62', '#00ff88', 
+                    '#66ffaa', '#0a4d3a', '#2c7a62'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        };
+
+        const empreendimentoData = {
+            labels: [
+                'Mirante Condomínio Clube',
+                'Jóquei Condomínio Clube',
+                'Belvedere Condomínio Clube',
+                'Alta Vista Passare',
+                'Vista Mar Condomínio Clube',
+                'Vitória Mondubim',
+                'Vista Parque Condomínio Clube',
+                'Vitória Senna',
+                'Vitória Acácia',
+                'Vitória Caucaia',
+                'Outros'
+            ],
+            datasets: [{
+                label: 'Reclamações por Empreendimento',
+                data: [20, 16, 11, 10, 11, 6, 2, 4, 1, 3, 20],
+                backgroundColor: [
+                    '#1a5f4a', '#0a4d3a', '#2c7a62', '#00ff88', 
+                    '#66ffaa', '#1a5f4a', '#0a4d3a', '#2c7a62', 
+                    '#00ff88', '#66ffaa', '#1a5f4a'
+                ],
+                borderColor: '#ffffff',
+                borderWidth: 2
+            }]
+        };
+
+        // Dados para Diagonal
+        const diagonalTemporalData = {
+            labels: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho'],
+            datasets: [{
+                label: 'Reclamações por Mês',
+                data: [5, 5, 9, 13, 18, 2],
+                backgroundColor: '#2c7a62',
+                borderColor: '#1a5f4a',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        };
+
+        const diagonalCategoriaData = {
+            labels: ['Obra/Construção', 'Assistência Técnica', 'Financeiro', 'Jurídico', 'Experiência do Cliente'],
+            datasets: [{
+                data: [40, 25, 15, 10, 10],
+                backgroundColor: [
+                    '#1a5f4a', '#0a4d3a', '#2c7a62', '#00ff88', '#66ffaa'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        };
+
+        // Dados para comparação
+        const taxasComparacaoData = {
+            labels: ['Victa', 'Diagonal'],
+            datasets: [{
+                label: 'Taxa de Reclamações',
+                data: [3.12, 5.26],
+                backgroundColor: ['#1a5f4a', '#2c7a62'],
+                borderWidth: 0
+            }]
+        };
+
+        // Configuração dos gráficos
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        font: {
+                            size: 11
+                        }
+                    }
+                }
+            }
+        };
+
+        // Criar gráficos
+        window.addEventListener('load', function() {
+            // Gráficos Victa
+            new Chart(document.getElementById('temporalChart'), {
+                type: 'line',
+                data: temporalData,
+                options: {
+                    ...chartOptions,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#e8f0ec'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            new Chart(document.getElementById('categoriaChart'), {
+                type: 'doughnut',
+                data: categoriaData,
+                options: chartOptions
+            });
+
+            new Chart(document.getElementById('empreendimentoChart'), {
+                type: 'bar',
+                data: empreendimentoData,
+                options: {
+                    ...chartOptions,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#e8f0ec'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Gráficos Diagonal
+            new Chart(document.getElementById('diagonal-temporalChart'), {
+                type: 'line',
+                data: diagonalTemporalData,
+                options: {
+                    ...chartOptions,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#e8f0ec'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            new Chart(document.getElementById('diagonal-categoriaChart'), {
+                type: 'doughnut',
+                data: diagonalCategoriaData,
+                options: chartOptions
+            });
+
+            // Gráficos Comparação
+            new Chart(document.getElementById('comparacao-taxasChart'), {
+                type: 'bar',
+                data: taxasComparacaoData,
+                options: {
+                    ...chartOptions,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#e8f0ec'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Taxa (%)'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+        // Sistema de abas
+        document.querySelectorAll('.tab-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                // Remover classe active de todos os botões
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Adicionar classe active ao botão clicado
+                button.classList.add('active');
+                
+                // Esconder todos os conteúdos
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // Mostrar o conteúdo correspondente
+                const tabId = button.getAttribute('data-tab');
+                document.getElementById(`${tabId}-content`).classList.add('active');
+            });
+        });
+        
+        // Função corrigida para toggle das seções de estratégia
+        function setupToggleSection(btnId, contentId) {
+            const toggleBtn = document.getElementById(btnId);
+            const content = document.getElementById(contentId);
+            
+            // Evento de clique no botão
+            toggleBtn.addEventListener('click', () => {
+                // Alternar a classe 'collapsed' no conteúdo
+                content.classList.toggle('collapsed');
+                
+                // Atualizar ícone e texto do botão
+                const icon = toggleBtn.querySelector('.icon i');
+                const textSpan = toggleBtn.querySelector('span:not(.icon)');
+                
+                if (content.classList.contains('collapsed')) {
+                    icon.classList.remove('fa-chevron-up');
+                    icon.classList.add('fa-chevron-down');
+                    textSpan.textContent = 'Exibir';
+                } else {
+                    icon.classList.remove('fa-chevron-down');
+                    icon.classList.add('fa-chevron-up');
+                    textSpan.textContent = 'Ocultar';
+                }
+            });
+        }
+        
+        // Configurar os toggles após o carregamento da página
+        document.addEventListener('DOMContentLoaded', () => {
+            setupToggleSection('victa-toggle-btn', 'victa-strategy-content');
+            setupToggleSection('diagonal-toggle-btn', 'diagonal-strategy-content');
+        });
+    </script>
+</body>
+</html>
